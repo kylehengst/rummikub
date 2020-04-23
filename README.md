@@ -27,3 +27,18 @@ yarn run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## Docker
+
+```
+docker build -t kylehengst/rummikub .
+```
+
+```
+docker run -it -p 8080:8080 --rm --name rummi kylehengst/rummikub
+docker run -it -p 8888:8080 --rm --name rummi kylehengst/rummikub
+```
+
+```
+ngrok http --host-header=rewrite --subdomain=rummi 8080
+```

@@ -1,0 +1,60 @@
+html,
+body {
+  scrollbar-shadow-color: rgba(0, 0, 0, 0);
+  scrollbar-face-color: rgba(0, 0, 0, 0.5);
+  scrollbar-track-color: rgba(0, 0, 0, 0);
+  scrollbar-arrow-color: rgba(0, 0, 0, 0);
+}
+
+#app {
+  font-family: Arial, Helvetica, sans-serif;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  background: darkslategray;
+}
+
+#app.desktop ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+#app.desktop ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+#app.desktop ::-webkit-scrollbar-track {
+  -webkit-border-radius: 10px;
+}
+
+#app.desktop ::-webkit-scrollbar-track:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+#app.desktop ::-webkit-scrollbar-thumb:vertical,
+#app.desktop ::-webkit-scrollbar-thumb:horizontal {
+  border: 2px solid rgba(0, 0, 0, 0);
+  min-height: 30px;
+  /*Prevent it from getting too small */
+  border-radius: 100px;
+  background: rgba(200, 200, 200, 0.4);
+  background-clip: padding-box;
+}
+
+#app.desktop ::-webkit-scrollbar-thumb:vertical:active,
+#app.desktop ::-webkit-scrollbar-thumb:horizontal:active {
+  border: 2px solid rgba(0, 0, 0, 0);
+  border-radius: 10px;
+  background: rgba(200, 200, 200, 0.5);
+}
+
+#app.desktop ::-webkit-scrollbar-track:hover {
+  background-color: rgba(120, 120, 120, 0.12);
+}
+/*# sourceMappingURL=main.css.map */
