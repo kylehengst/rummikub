@@ -63,7 +63,7 @@
       <div class="user active">Oma</div>
       <div class="user">Dad</div>
       <div class="user">Mum</div>
-      <div class="user">{{tileSlot}}</div>
+      <!-- <div class="user">{{ tileSlot }}</div> -->
     </div>
     <div id="actions">
       <!-- <div class="button">Skip</div>
@@ -146,6 +146,7 @@ export default {
         y = clientY + this.$refs.shelf.scrollTop;
         offsetY = this.boardHeight;
       }
+
       tiles.forEach((row, rowIndex) => {
         if (found) return;
         offsetX = 0;
@@ -157,7 +158,7 @@ export default {
             y >= offsetY &&
             y <= offsetY + 82
           ) {
-            this.$set(this.tileSlot, index.touchIndex, {
+            this.$set(this.tileSlot, index.id, {
               row: rowIndex,
               col: colIndex,
               shelf,
@@ -172,9 +173,10 @@ export default {
     },
     onStopDrag(config, index) {
       console.log(config);
-      let tileSlot = this.tileSlot[index.touchIndex];
+      let tileSlot = this.tileSlot[index.id];
       if (tileSlot.shelf) this.updateShelf(config, index, tileSlot);
       else this.updateBoard(config, index, tileSlot);
+      this.$set(this.tileSlot, index.id, null);
       // this.dragging = false;
     },
     resetRowCol() {
@@ -202,7 +204,7 @@ export default {
       // this.tileSlot[index.touchIndex]
       // this.$forceUpdate();
       // setTimeout(() => {
-        this.$delete(this.tileSlot, index.touchIndex);
+      // this.$delete(this.tileSlot, index.id);
       // }, 1000);
       // this.$nextTick(() => {
       // });
@@ -224,10 +226,10 @@ export default {
       }
       // this.$forceUpdate();
       // setTimeout(() => {
-        this.$delete(this.tileSlot, index.touchIndex);
+      // this.$delete(this.tileSlot, index.touchIndex);
       // }, 1000);
       // this.$nextTick(() => {
-        // this.$delete(this.tileSlot, index.touchIndex);
+      // this.$delete(this.tileSlot, index.touchIndex);
       // });
     },
     getTouchIndex(evt) {
@@ -240,6 +242,7 @@ export default {
     },
     doHighlightTileSlot(row, col, shelf) {
       return this.tileSlot.find((slot) => {
+        if (!slot) return;
         return slot.row == row && slot.col == col && slot.shelf == shelf;
       })
         ? true

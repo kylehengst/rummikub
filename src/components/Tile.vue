@@ -59,6 +59,7 @@ export default {
     getTouchIndex(evt) {
       let touchIndex = -1;
       if (this.$store.state.touch) {
+        if (!evt.touches.length) return -2;
         evt.touches.forEach((t, i) => {
           if (t.target != this.$refs.tile) return;
           touchIndex = i;
@@ -84,6 +85,7 @@ export default {
         row: this.row,
         col: this.col,
         touchIndex: this.touchIndex,
+        id: this._uid
       });
       this.dragging = true;
       evt.stopPropagation();
@@ -103,6 +105,7 @@ export default {
         row: this.row,
         col: this.col,
         touchIndex: this.touchIndex,
+        id: this._uid,
         x,
         y
       });
@@ -110,6 +113,13 @@ export default {
     onMouseUp(evt) {
       if (evt.target != this.$refs.tile) return;
       if (!this.dragging) return;
+      // if (this.$store.state.touch) {
+      //   const touchIndex = this.getTouchIndex(evt);
+      //   if (touchIndex == -1) {
+      //     return;
+      //   }
+      // }
+      console.log('onMouseUp')
       // this.touchIndex = this.getTouchIndex(evt);
       // if (this.$store.state.touch && this.touchIndex < 0) return;
       this.dragging = false;
@@ -119,6 +129,7 @@ export default {
         row: this.row,
         col: this.col,
         touchIndex: this.touchIndex,
+        id: this._uid
       });
     },
   },
@@ -146,8 +157,8 @@ export default {
   pointer-events: none;
 }
 .tile.dragging {
-  pointer-events: none;
-  touch-action: none;
+  /* pointer-events: none;
+  touch-action: none; */
   position: fixed;
   z-index: 1000;
   transform: scale(1.2);
