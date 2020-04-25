@@ -10,7 +10,9 @@ export default new Vuex.Store({
       down: 'mousedown',
       move: 'mousemove',
       up: 'mouseup',
-    },    
+    },
+    userName: '',
+    userId: '',
   },
   mutations: {
     setEventTypes(state, value) {
@@ -18,7 +20,13 @@ export default new Vuex.Store({
     },
     setTouch(state, value) {
       state.touch = value;
-    }
+    },
+    setUserName(state, value) {
+      state.userName = value;
+    },
+    setUserId(state, value) {
+      state.userId = value;
+    },
   },
   actions: {},
   modules: {},

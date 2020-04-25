@@ -2,7 +2,7 @@
   <div class="tile" ref="tile" :class="{ dragging: dragging }" :style="style">
     <div :class="config.color">
       <span v-if="config.isJoker">
-        <img src="img/joker.png" alt="" />
+        <img src="/img/joker.png" alt="" />
       </span>
       <span v-else>{{ config.score }}</span>
     </div>
@@ -11,7 +11,7 @@
 
 <script>
 export default {
-  props: ['config', 'row', 'col', 'user'],
+  props: ['config', 'row', 'col', 'user', 'disabled'],
   data() {
     return {
       touchIndex: 0,
@@ -69,6 +69,7 @@ export default {
     },
     onMouseDown(evt) {
       console.log(evt);
+      if (this.disabled) return;
       this.touchIndex = this.getTouchIndex(evt);
       this.offsetX = 0;
       this.offsetY = 0;
