@@ -53,7 +53,6 @@
             :row="rowIndex"
             :col="colIndex"
             :user="true"
-            :disabled="!yourTurn"
             @startdrag="onStartDrag"
             @drag="onDragging"
             @stopdrag="onStopDrag"
@@ -77,7 +76,7 @@
       <div class="button">Quit</div> -->
       <div class="button" @click="resetBoard()" v-if="yourTurn">Reset</div>
       <div class="button" @click="skipTurn()" v-if="yourTurn">Skip</div>
-      <div class="button" @click="makePlay()" v-if="yourTurn">Play</div>
+      <div class="button" @click="makeMove()" v-if="yourTurn">Play</div>
     </div>
   </div>
 </template>
@@ -90,6 +89,10 @@ import shelf from '../assets/shelf.json';
 // import board from '../assets/board.json';
 import Tile from '@/components/Tile.vue';
 
+function createShelf() {
+  return shelf;
+}
+
 export default {
   name: 'Game',
   components: {
@@ -98,7 +101,7 @@ export default {
   data() {
     return {
       board: [],
-      shelf,
+      shelf: createShelf(),
       user: null,
       grid: [],
       dragging: false,
@@ -124,37 +127,50 @@ export default {
     this.gameId = this.$route.params.id;
     Socket.on('game', this.onGame);
     Socket.on('game_board_updated', this.onGameBoard);
+    Socket.on('reset_game_board', this.onGameBoardReset);
+    Socket.on('new_tile', this.onNewTile);
+    Socket.on('invalid_move', this.onInvalidMove);
     Socket.getGame(this.gameId);
-    // this.rummikub = new rummikub.Rummikub();
-    // this.user = new rummikub.User('kyle');
-    // this.rummikub.users.push(this.user);
-    // this.rummikub.initializeGame();
-    // this.shelf[0].splice(0, this.user.own.length);
-    // this.shelf[0] = this.user.own.concat(this.shelf[0]);
-    // window._game = this;
   },
   mounted() {
-    this.boardHeight = this.$refs.board.clientHeight;
+    window.addEventListener('resize', this.onResize);
+    this.onResize();
+  },
+  destroyed() {
+    window.removeEventListener('resize', this.onResize);
+    Socket.off('game', this.onGame);
+    Socket.off('game_board_updated', this.onGameBoard);
+    Socket.off('reset_game_board', this.onGameBoardReset);
+    Socket.off('new_tile', this.onNewTile);
+    Socket.off('invalid_move', this.onNewTile);
   },
   computed: {
     yourTurn() {
       return this.currentUser == this.$store.state.userId;
-    }
+    },
   },
   methods: {
+    onResize() {
+      this.boardHeight = this.$refs.board.clientHeight;
+    },
     onGame(data) {
       console.log(data);
       if (!data.game || data.users.length < 2) {
         this.$router.push({ name: 'Lobby', params: { id: this.gameId } });
         return;
       }
+
+      this.game = JSON.parse(JSON.stringify(data.game));
       this.board = data.game.board;
       this.users = data.users;
       this.currentUser = data.game.currentUser;
-      let userTiles = data.game.users[this.$store.state.userId].tiles;
 
-      this.shelf[0].splice(0, userTiles.length);
-      this.shelf[0] = userTiles.concat(this.shelf[0]);
+      if (!data.update) {
+        this.setUserTiles(data.game.users);
+        this.shelfSnapshot = JSON.parse(JSON.stringify(this.shelf));
+      }
+
+      // this.takeSnapshot();
     },
     onGameBoard(data) {
       console.log('onGameBoard', data);
@@ -170,13 +186,77 @@ export default {
       }
       // this.board = data.game.board;
     },
-    startGame() {
-      Socket.startGame(this.gameId);
+    onGameBoardReset() {
+      console.log('onGameBoardReset');
+      this.resetBoard(true);
     },
-    onStartGame() {},
-    resetBoard() {},
-    skipTurn() {},
-    makePlay() {},
+    onNewTile(data) {
+      console.log(data);
+      let index = this.shelf[1].findIndex((t) => {
+        return t === null;
+      });
+      this.shelf[1].splice(index, 1, data.tile);
+      this.shelfSnapshot = JSON.parse(JSON.stringify(this.shelf));
+      // this.takeSnapshot();
+    },
+    onInvalidMove() {
+      alert('Invalid move');
+    },
+
+    setUserTiles(users) {
+      console.log('setUserTiles');
+      let shelf = createShelf();
+      let userTiles = JSON.parse(
+        JSON.stringify(users[this.$store.state.userId].tiles)
+      );
+      shelf[0].splice(0, userTiles.length);
+      shelf[0] = userTiles.concat(shelf[0]);
+      this.shelf = shelf;
+    },
+    takeSnapshot() {
+      this.snapshot = JSON.parse(
+        JSON.stringify({
+          game: this.game,
+          shelf: this.shelf,
+        })
+      );
+    },
+    resetShelf() {
+      // TODO get tiles from board instead
+      this.board.forEach((row) => {
+        row.forEach((tile) => {
+          if (!tile || !tile.isOwn) return;
+          tile.shelf = true;
+          this.onNewTile({ tile });
+        });
+      });
+      // this.shelf = JSON.parse(JSON.stringify(this.shelfSnapshot));
+    },
+    resetBoard() {
+      // this.setUserTiles(this.game.users);
+      this.resetShelf();
+      Socket.resetGameBoard();
+    },
+    skipTurn() {
+      this.currentUser = '';
+      this.resetShelf();
+      // this.setUserTiles(this.game.users);
+      Socket.skipTurn();
+    },
+    makeMove() {
+      // get remaing user tiles
+      let tiles = [];
+      this.shelf.forEach(row => {
+        row.forEach(tile => {
+          if (!tile) return;
+          tiles.push(tile);
+        })
+      })
+      Socket.makeMove({
+        board: this.board,
+        tiles
+      });
+    },
 
     // tile moves
     onStartDrag(config, index) {
@@ -225,8 +305,9 @@ export default {
       });
     },
     onStopDrag(config, index) {
-      console.log(config);
       let tileSlot = this.tileSlot[index.id];
+      console.log(config, tileSlot);
+      if (!tileSlot) return;
       if (tileSlot.shelf) this.updateShelf(config, index, tileSlot);
       else this.updateBoard(config, index, tileSlot);
       this.$set(this.tileSlot, index.id, null);
@@ -234,7 +315,7 @@ export default {
     },
     updateBoard(config, index, tileSlot) {
       // if (this.boardRow < 0 || this.boardCol < 0) return;
-      if (this.board[tileSlot.row][tileSlot.col]) return;
+      if (this.board[tileSlot.row][tileSlot.col] || !this.yourTurn) return;
 
       this.board[tileSlot.row].splice(tileSlot.col, 1, config);
 
@@ -276,6 +357,8 @@ export default {
       // if (this.shelfRow < 0 || this.shelfCol < 0) return;
       if (config.board && !config.isOwn) return;
       if (this.shelf[tileSlot.row][tileSlot.col]) return;
+
+      console.log('updateShelf', config, tileSlot);
 
       // this.shelf[tileSlot.row][tileSlot.col] = config;
       this.shelf[tileSlot.row].splice(tileSlot.col, 1, config);

@@ -2,6 +2,7 @@
   <div id="lobby">
     <div class="card">
       <div class="card-body">
+        <p>Waiting for players</p>
         <ul class="list-group">
           <li
             class="list-group-item"
@@ -30,6 +31,7 @@ export default {
   name: 'Lobby',
   data() {
     return {
+      started: false,
       users: [],
     };
   },
@@ -40,17 +42,27 @@ export default {
       });
       return;
     }
-    Socket.on('game', this.onGameUsers);
+    Socket.on('game', this.onGame);
+    Socket.on('game_started', this.onGameStarted);
+    Socket.on('new_user', this.onNewUser);
     Socket.getGame(this.$route.params.id);
     // Socket.on('user', this.onUser);
     // const userId = localStorage.getItem('user_id');
     // Socket.initUser(userId);
   },
   destroyed() {
-    Socket.off('game', this.onGameUsers);
+    Socket.off('game', this.onGame);
+    Socket.off('game_started', this.onGameStarted);
+    Socket.off('new_user', this.onNewUser);
   },
   methods: {
-    onGameUsers(data) {
+    onGameStarted() {
+      this.gotoGame();
+    },
+    onNewUser(data) {
+      this.users = data.users;
+    },
+    onGame(data) {
       console.log('onGameUsers', data);
       if (!data.game || !data.users.length) {
         this.$router.push({
@@ -66,7 +78,6 @@ export default {
     },
     start() {
       Socket.startGame(this.$route.params.id);
-      this.gotoGame();
     },
     gotoGame() {
       this.$router.push({

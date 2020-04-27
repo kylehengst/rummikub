@@ -4,6 +4,7 @@ const host = 'ws://localhost:5000';
 class Socket extends Emitter {
   constructor(host) {
     super();
+    this.id = '';
     this.host = host;
     this.connect();
   }
@@ -25,20 +26,26 @@ class Socket extends Emitter {
     };
   }
   initGame(id) {
+    this.id = id;
     this.message({
       event: 'game',
+      id,
       data: { id },
     });
   }
   startGame(id) {
+    this.id = id;
     this.message({
       event: 'start_game',
+      id,
       data: { id },
     });
   }
   getGame(id) {
+    this.id = id;
     this.message({
       event: 'get_game',
+      id,
       data: { id },
     });
   }
@@ -58,7 +65,28 @@ class Socket extends Emitter {
     this.message({
       event: 'update_game_board',
       data,
-    });    
+    });
+  }
+  resetGameBoard() {
+    this.message({
+      id: this.id,
+      event: 'reset_game_board',
+      data: null,
+    });
+  }
+  skipTurn() {
+    this.message({
+      event: 'skip_turn',
+      id: this.id,
+      data: null,
+    });
+  }
+  makeMove(data) {
+    this.message({
+      event: 'make_move',
+      id: this.id,
+      data: data,
+    });
   }
   message(message) {
     this.ws.send(JSON.stringify(message));

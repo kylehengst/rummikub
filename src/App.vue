@@ -37,5 +37,6 @@ export default {
 <style>
 body {
   /* color: white; */
+  user-select: none;
 }
 </style>
