@@ -1,7 +1,13 @@
 <template>
   <div id="app" :class="{ desktop: !touch }">
     <router-view v-if="connected" />
-    <div v-else>Error</div>
+    <div v-else class="connecting">
+      <div class="card">
+        <div class="card-body">
+          Connecting...
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -25,10 +31,11 @@ export default {
       });
     }
     this.$store.commit('setTouch', this.touch);
-    Socket.on('connected', () => {
-      this.connected = true; 
+    Socket.on('open', () => {
+      this.connected = true;
     });
     Socket.on('close', () => {
+      console.log('close');
       this.connected = false;
     });
   },
@@ -38,5 +45,11 @@ export default {
 body {
   /* color: white; */
   user-select: none;
+}
+.connecting {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

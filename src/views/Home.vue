@@ -40,6 +40,7 @@ export default {
   },
   destroyed() {
     Socket.off('game', this.onGame);
+    Socket.off('user', this.onUser);
   },
   methods: {
     startGame() {

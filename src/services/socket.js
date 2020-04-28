@@ -1,5 +1,5 @@
 import Emitter from './emitter';
-const host = 'ws://localhost:5000';
+const host = process.env.VUE_APP_HOST;
 
 class Socket extends Emitter {
   constructor(host) {
@@ -14,7 +14,14 @@ class Socket extends Emitter {
       const message = JSON.parse(e.data);
       this.emit(message.event, message.data);
     };
-    this.ws.onclose = () => {
+    this.ws.onopen = (evt) => {
+      console.log('onopen', evt);
+      const userId = localStorage.getItem('user_id');
+      this.initUser(userId);      
+      this.emit('open');
+    }
+    this.ws.onclose = (evt) => {
+      console.log('onclose', evt);
       setTimeout(() => {
         this.connect(this.host);
       }, 1000);
