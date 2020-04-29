@@ -8,6 +8,7 @@
         </div>
       </div>
     </div>
+    <div id="version">Version 0.1</div>
   </div>
 </template>
 <script>

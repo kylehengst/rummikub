@@ -126,6 +126,7 @@ export default {
     console.log('beforeMount');
     this.gameId = this.$route.params.id;
     Socket.on('game', this.onGame);
+    Socket.on('reset', this.onReset);
     Socket.on('game_board_updated', this.onGameBoard);
     Socket.on('reset_game_board', this.onGameBoardReset);
     Socket.on('new_tile', this.onNewTile);
@@ -139,6 +140,7 @@ export default {
   destroyed() {
     window.removeEventListener('resize', this.onResize);
     Socket.off('game', this.onGame);
+    Socket.off('reset', this.onReset);
     Socket.off('game_board_updated', this.onGameBoard);
     Socket.off('reset_game_board', this.onGameBoardReset);
     Socket.off('new_tile', this.onNewTile);
@@ -150,6 +152,11 @@ export default {
     },
   },
   methods: {
+    onReset() {
+      this.$router.push({
+        name: 'Home',
+      });
+    },
     onResize() {
       this.boardHeight = this.$refs.board.clientHeight;
     },
@@ -226,7 +233,7 @@ export default {
       this.board.forEach((row) => {
         row.forEach((tile) => {
           if (!tile || !tile.isOwn) return;
-          tile.shelf = true;
+          tile.board = false;
           this.onNewTile({ tile });
         });
       });
@@ -246,15 +253,15 @@ export default {
     makeMove() {
       // get remaing user tiles
       let tiles = [];
-      this.shelf.forEach(row => {
-        row.forEach(tile => {
+      this.shelf.forEach((row) => {
+        row.forEach((tile) => {
           if (!tile) return;
           tiles.push(tile);
-        })
-      })
+        });
+      });
       Socket.makeMove({
         board: this.board,
-        tiles
+        tiles,
       });
     },
 

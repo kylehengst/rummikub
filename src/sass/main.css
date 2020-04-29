@@ -17,6 +17,10 @@ body {
   display: -ms-flexbox;
   display: flex;
   background: darkslategray;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
 }
 
 #app.desktop ::-webkit-scrollbar {
@@ -56,5 +60,12 @@ body {
 
 #app.desktop ::-webkit-scrollbar-track:hover {
   background-color: rgba(120, 120, 120, 0.12);
+}
+
+#version {
+  background: black;
+  color: white;
+  font-size: 11px;
+  padding: 2px 4px;
 }
 /*# sourceMappingURL=main.css.map */
