@@ -10,7 +10,7 @@
     </div>
     <div id="version">
       <div>
-        Version 0.2
+        Version 0.3
       </div>
       <div class="flex-fill"></div>
       <div v-if="prompt">
@@ -27,7 +27,7 @@ export default {
       connected: false,
       touch: false,
       registered: false,
-      prompt: true,
+      prompt: false,
     };
   },
   beforeMount() {
