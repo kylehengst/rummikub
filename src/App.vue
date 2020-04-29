@@ -8,7 +8,15 @@
         </div>
       </div>
     </div>
-    <div id="version">Version 0.1</div>
+    <div id="version">
+      <div>
+        Version 0.2
+      </div>
+      <div class="flex-fill"></div>
+      <div v-if="prompt">
+        <a @click="upgrade">Update available</a>
+      </div>
+    </div>
   </div>
 </template>
 <script>
@@ -19,6 +27,7 @@ export default {
       connected: false,
       touch: false,
       registered: false,
+      prompt: true,
     };
   },
   beforeMount() {
@@ -39,6 +48,19 @@ export default {
       console.log('close');
       this.connected = false;
     });
+  },
+  created() {
+    if (this.$workbox) {
+      this.$workbox.addEventListener('waiting', () => {
+        this.prompt = true;
+      });
+    }
+  },
+  methods: {
+    async upgrade() {
+      this.prompt = false;
+      await this.$workbox.messageSW({ type: 'SKIP_WAITING' });
+    },
   },
 };
 </script>

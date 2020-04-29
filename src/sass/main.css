@@ -67,5 +67,12 @@ body {
   color: white;
   font-size: 11px;
   padding: 2px 4px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+#version a {
+  cursor: pointer;
 }
 /*# sourceMappingURL=main.css.map */
