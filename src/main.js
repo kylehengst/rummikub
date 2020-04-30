@@ -5,6 +5,9 @@ import store from './store';
 import wb from "./registerServiceWorker";
 import './sass/main.css';
 
+import PortalVue from 'portal-vue'
+Vue.use(PortalVue)
+
 Vue.config.productionTip = false;
 
 Vue.prototype.$workbox = wb;

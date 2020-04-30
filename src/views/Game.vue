@@ -62,7 +62,7 @@
     </div>
     <div id="users">
       <div
-        class="button"
+        class="button mr-2"
         :class="{ active: currentUser == user.id }"
         v-for="(user, userIndex) in users"
         :key="userIndex"
@@ -75,8 +75,8 @@
       <div class="button">Play</div>
       <div class="button">Quit</div> -->
       <div class="button" @click="resetBoard()" v-if="yourTurn">Reset</div>
-      <div class="button" @click="skipTurn()" v-if="yourTurn">Skip</div>
-      <div class="button" @click="makeMove()" v-if="yourTurn">Play</div>
+      <div class="button ml-2" @click="skipTurn()" v-if="yourTurn">Skip</div>
+      <div class="button ml-2" @click="makeMove()" v-if="yourTurn">Play</div>
     </div>
   </div>
 </template>
@@ -114,6 +114,8 @@ export default {
       users: [],
       gameId: '',
       currentUser: '',
+      modal: false,
+      modalBody: '',
     };
   },
   beforeMount() {
@@ -131,6 +133,7 @@ export default {
     Socket.on('reset_game_board', this.onGameBoardReset);
     Socket.on('new_tile', this.onNewTile);
     Socket.on('invalid_move', this.onInvalidMove);
+    Socket.on('winner', this.onWinner);
     Socket.getGame(this.gameId);
   },
   mounted() {
@@ -144,10 +147,12 @@ export default {
     Socket.off('game_board_updated', this.onGameBoard);
     Socket.off('reset_game_board', this.onGameBoardReset);
     Socket.off('new_tile', this.onNewTile);
-    Socket.off('invalid_move', this.onNewTile);
+    Socket.off('invalid_move', this.onInvalidMove);
+    Socket.off('winner', this.onWinner);
   },
   computed: {
     yourTurn() {
+      if (this.game && this.game.end) return;
       return this.currentUser == this.$store.state.userId;
     },
   },
@@ -170,7 +175,7 @@ export default {
       this.game = JSON.parse(JSON.stringify(data.game));
       this.board = data.game.board;
       this.users = data.users;
-      this.currentUser = data.game.currentUser;
+      this.currentUser = data.game.end ? '' : data.game.currentUser;
 
       if (!data.update) {
         this.setUserTiles(data.game.users);
@@ -207,7 +212,14 @@ export default {
       // this.takeSnapshot();
     },
     onInvalidMove() {
-      alert('Invalid move');
+      this.$store.commit('setModal', {
+        title: `Invalid move`
+      })
+    },
+    onWinner(data) {
+      this.$store.commit('setModal', {
+        title: `${data.winner.name} wins!`
+      })
     },
 
     setUserTiles(users) {

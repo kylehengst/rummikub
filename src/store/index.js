@@ -13,6 +13,9 @@ export default new Vuex.Store({
     },
     userName: '',
     userId: '',
+    modal: false,
+    modalTitle: '',
+    modalBody: '',
   },
   mutations: {
     setEventTypes(state, value) {
@@ -27,6 +30,14 @@ export default new Vuex.Store({
     setUserId(state, value) {
       state.userId = value;
     },
+    setModal(state, value) {
+      state.modalTitle = value.title || '';
+      state.modalBody = value.body || '';
+      state.modal = true;
+    },
+    closeModal(state) {
+      state.modal = false;
+    }
   },
   actions: {},
   modules: {},

@@ -10,12 +10,55 @@
     </div>
     <div id="version">
       <div>
-        Version 0.3
+        Version 0.5
       </div>
       <div class="flex-fill"></div>
       <div v-if="prompt">
-        <a @click="upgrade">Update available</a>
+        <button class="btn btn-sm btn-secondary" @click="upgrade">Click here to update</button>
       </div>
+    </div>
+    <div id="modals">
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        :class="{ show: $store.state.modal, 'd-block': $store.state.modal }"
+        id="exampleModal"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header" v-if="$store.state.modalTitle">
+              <h5 class="modal-title" id="exampleModalLabel">{{ $store.state.modalTitle }}</h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+                @click="$store.commit('closeModal')"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" v-if=" $store.state.modalBody">
+              {{ $store.state.modalBody }}
+            </div>
+            <div class="modal-footer">
+              <button
+                @click="$store.commit('closeModal')"
+                type="button"
+                class="btn btn-secondary"
+                data-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-backdrop fade show" v-if="$store.state.modal" @click="$store.commit('closeModal')"></div>
     </div>
   </div>
 </template>

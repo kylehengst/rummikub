@@ -60,7 +60,14 @@ body {
   font-size: 11px;
   padding: 2px 4px;
   display: flex;
+  align-items: center;
   a {
     cursor: pointer;
   }
+}
+#modals {
+  position: absolute;
+  z-index: 100;
+  left: 0;
+  top: 0;
 }
