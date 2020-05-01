@@ -10,7 +10,7 @@
     </div>
     <div id="version">
       <div>
-        Version 0.5
+        Version 0.6
       </div>
       <div class="flex-fill"></div>
       <div v-if="prompt">

@@ -14,7 +14,6 @@ module.exports = {
   configureWebpack: {
     plugins: [
       new GenerateSW({
-        importScripts: [`${publicPath}push-notifications.js`],
         ignoreUrlParametersMatching: [
           /\/index\.html/
         ]
