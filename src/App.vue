@@ -1,20 +1,11 @@
 <template>
   <div id="app" :class="{ desktop: !touch }">
     <router-view v-if="connected" />
-    <div v-else class="connecting">
+    <div v-else class="connecting py-5">
       <div class="card">
         <div class="card-body">
           Connecting...
         </div>
-      </div>
-    </div>
-    <div id="version">
-      <div>
-        Version 0.6
-      </div>
-      <div class="flex-fill"></div>
-      <div v-if="prompt">
-        <button class="btn btn-sm btn-secondary" @click="upgrade">Click here to update</button>
       </div>
     </div>
     <div id="modals">
@@ -31,7 +22,9 @@
         <div class="modal-dialog" role="document">
           <div class="modal-content">
             <div class="modal-header" v-if="$store.state.modalTitle">
-              <h5 class="modal-title" id="exampleModalLabel">{{ $store.state.modalTitle }}</h5>
+              <h5 class="modal-title" id="exampleModalLabel">
+                {{ $store.state.modalTitle }}
+              </h5>
               <button
                 type="button"
                 class="close"
@@ -42,7 +35,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <div class="modal-body" v-if=" $store.state.modalBody">
+            <div class="modal-body" v-if="$store.state.modalBody">
               {{ $store.state.modalBody }}
             </div>
             <div class="modal-footer">
@@ -58,8 +51,15 @@
           </div>
         </div>
       </div>
-      <div class="modal-backdrop fade show" v-if="$store.state.modal" @click="$store.commit('closeModal')"></div>
+      <div
+        class="modal-backdrop fade show"
+        v-if="$store.state.modal"
+        @click="$store.commit('closeModal')"
+      ></div>
     </div>
+    <audio src="/sound/cardPlace.mp3" id="cardPlace"></audio>
+    <audio src="/sound/bell.mp3" id="bell"></audio>
+    <audio src="/sound/alert.mp3" id="alert"></audio>
   </div>
 </template>
 <script>
@@ -70,7 +70,6 @@ export default {
       connected: false,
       touch: false,
       registered: false,
-      prompt: false,
     };
   },
   beforeMount() {
@@ -92,19 +91,8 @@ export default {
       this.connected = false;
     });
   },
-  created() {
-    if (this.$workbox) {
-      this.$workbox.addEventListener('waiting', () => {
-        this.prompt = true;
-      });
-    }
-  },
-  methods: {
-    async upgrade() {
-      this.prompt = false;
-      await this.$workbox.messageSW({ type: 'SKIP_WAITING' });
-    },
-  },
+
+  methods: {},
 };
 </script>
 <style>

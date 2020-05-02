@@ -1,8 +1,8 @@
 <template>
-  <div id="lobby">
+  <div id="lobby" class="container py-5">
     <div class="card">
       <div class="card-body">
-        <p>Waiting for players</p>
+        <h3>Waiting for players</h3>
         <ul class="list-group">
           <li
             class="list-group-item"
@@ -12,14 +12,21 @@
             {{ user.name }}
           </li>
         </ul>
-        <div class="pb-3"></div>
+        <div v-if="users.length > 1">
+          <div class="pb-3"></div>
+          <button class="btn btn-primary" @click="start()">
+            Play
+          </button>
+        </div>
+        <hr />
+        <div class="text-right">
         <button
-          v-if="users.length > 1"
-          class="btn btn-primary"
-          @click="start()"
+          class="btn btn-secondary"
+          @click="$router.push({ name: 'Home' })"
         >
-          Play
+          Home
         </button>
+        </div>
       </div>
     </div>
   </div>
@@ -91,10 +98,10 @@ export default {
 
 <style scoped>
 #lobby {
-  flex: 1;
+  /* flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
+  flex-direction: column; */
 }
 </style>

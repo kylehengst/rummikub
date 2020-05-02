@@ -16,6 +16,7 @@ export default new Vuex.Store({
     modal: false,
     modalTitle: '',
     modalBody: '',
+    savedGames: []
   },
   mutations: {
     setEventTypes(state, value) {
@@ -37,7 +38,10 @@ export default new Vuex.Store({
     },
     closeModal(state) {
       state.modal = false;
-    }
+    },
+    setGames(state, value) {
+      state.savedGames = value;
+    },
   },
   actions: {},
   modules: {},

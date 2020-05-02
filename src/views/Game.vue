@@ -74,9 +74,10 @@
       <!-- <div class="button">Skip</div>
       <div class="button">Play</div>
       <div class="button">Quit</div> -->
-      <div class="button" @click="resetBoard()" v-if="yourTurn">Reset</div>
-      <div class="button ml-2" @click="skipTurn()" v-if="yourTurn">Skip</div>
-      <div class="button ml-2" @click="makeMove()" v-if="yourTurn">Play</div>
+      <div class="button" @click="$router.push({ name: 'Home' })">Home</div>
+      <div class="button ml-3" @click="resetBoard()" v-if="yourTurn">Reset</div>
+      <div class="button ml-3" @click="skipTurn()" v-if="yourTurn">Skip</div>
+      <div class="button ml-5" @click="makeMove()" v-if="yourTurn">Play</div>
     </div>
   </div>
 </template>
@@ -84,6 +85,7 @@
 <script>
 // @ is an alias to /src
 import Socket from '../services/socket';
+import Sounds from '../services/sounds';
 // import rummikub from '../assets/js/rummikub';
 import shelf from '../assets/shelf.json';
 // import board from '../assets/board.json';
@@ -180,6 +182,8 @@ export default {
       if (!data.update) {
         this.setUserTiles(data.game.users);
         this.shelfSnapshot = JSON.parse(JSON.stringify(this.shelf));
+      } else if (this.currentUser == this.$store.state.userId) {
+        Sounds.playSound('bell');
       }
 
       // this.takeSnapshot();
@@ -196,6 +200,7 @@ export default {
       if (data.remove) {
         this.board[data.remove.row].splice(data.remove.col, 1, null);
       }
+       Sounds.playSound('cardPlace');
       // this.board = data.game.board;
     },
     onGameBoardReset() {
@@ -213,13 +218,14 @@ export default {
     },
     onInvalidMove() {
       this.$store.commit('setModal', {
-        title: `Invalid move`
-      })
+        title: `Invalid move`,
+      });
+      Sounds.playSound('alert');
     },
     onWinner(data) {
       this.$store.commit('setModal', {
-        title: `${data.winner.name} wins!`
-      })
+        title: `${data.winner.name} wins!`,
+      });
     },
 
     setUserTiles(users) {
@@ -331,6 +337,7 @@ export default {
       else this.updateBoard(config, index, tileSlot);
       this.$set(this.tileSlot, index.id, null);
       // this.dragging = false;
+      Sounds.playSound('cardPlace');
     },
     updateBoard(config, index, tileSlot) {
       // if (this.boardRow < 0 || this.boardCol < 0) return;
@@ -433,7 +440,12 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
 }
 #board {
   flex: 1;
