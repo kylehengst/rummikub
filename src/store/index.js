@@ -13,6 +13,7 @@ export default new Vuex.Store({
     },
     userName: '',
     userId: '',
+    userUuid: '',
     modal: false,
     modalTitle: '',
     modalBody: '',
@@ -30,6 +31,9 @@ export default new Vuex.Store({
     },
     setUserId(state, value) {
       state.userId = value;
+    },
+    setUserUuid(state, value) {
+      state.userUuid = value;
     },
     setModal(state, value) {
       state.modalTitle = value.title || '';

@@ -3,6 +3,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 import wb from "./registerServiceWorker";
+import './assets/bootstrap.min.css';
 import './sass/main.css';
 
 import PortalVue from 'portal-vue'

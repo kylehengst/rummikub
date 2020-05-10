@@ -1,11 +1,13 @@
 import Emitter from './emitter';
 const host = process.env.VUE_APP_HOST;
+const api = process.env.VUE_APP_API;
 
 class Socket extends Emitter {
   constructor(host) {
     super();
     this.id = '';
     this.host = host;
+    this.api = api;
     this.connect();
   }
   connect() {
@@ -16,7 +18,7 @@ class Socket extends Emitter {
     };
     this.ws.onopen = (evt) => {
       console.log('onopen', evt);
-      const userId = localStorage.getItem('user_id');
+      const userId = localStorage.getItem('token');
       this.initUser(userId);      
       this.emit('open');
     }
@@ -40,6 +42,11 @@ class Socket extends Emitter {
       data: { id },
     });
   }
+  createGame() {
+    this.message({
+      event: 'create_game'
+    });
+  }
   startGame(id) {
     this.id = id;
     this.message({
@@ -52,6 +59,14 @@ class Socket extends Emitter {
     this.id = id;
     this.message({
       event: 'get_game',
+      id,
+      data: { id },
+    });
+  }
+  getGameDetails(id) {
+    this.id = id;
+    this.message({
+      event: 'game_details',
       id,
       data: { id },
     });
@@ -81,11 +96,11 @@ class Socket extends Emitter {
       data: null,
     });
   }
-  skipTurn() {
+  skipTurn(data) {
     this.message({
       event: 'skip_turn',
       id: this.id,
-      data: null,
+      data,
     });
   }
   makeMove(data) {

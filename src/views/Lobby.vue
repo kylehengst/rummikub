@@ -1,33 +1,47 @@
 <template>
   <div id="lobby" class="container py-5">
-    <div class="card">
-      <div class="card-body">
-        <h3>Waiting for players</h3>
-        <ul class="list-group">
-          <li
-            class="list-group-item"
-            v-for="(user, userIndex) in users"
-            :key="userIndex"
-          >
-            {{ user.name }}
-          </li>
-        </ul>
-        <div v-if="users.length > 1">
-          <div class="pb-3"></div>
-          <button class="btn btn-primary" @click="start()">
-            Play
-          </button>
-        </div>
-        <hr />
-        <div class="text-right">
+    <!-- <h3 class="mb-3">{{ gameId }}</h3> -->
+    <div v-if="game">
+      <h3 class="mb-3">Waiting for players</h3>
+      <ul class="list-group">
+        <li class="list-group-item bg-success">
+          <h4 class="text-dark mb-0">
+            <strong>
+              <span v-for="(u, ui) in users" :key="ui">
+                <span v-if="ui" class="px-2">vs</span>
+                <span>{{ u.gamer_tag }}</span>
+              </span>
+            </strong>
+          </h4>
+        </li>
+      </ul>
+      <div class="pb-3"></div>
+      <div class="d-flex">
         <button
-          class="btn btn-secondary"
-          @click="$router.push({ name: 'Home' })"
+          class="btn  btn-lg"
+          :class="{
+            'btn-info': users.length < 2,
+            'btn-dark': users.length > 1,
+          }"
+          @click="shareGame()"
         >
-          Home
+          Share game
         </button>
-        </div>
+        <div class="flex-fill"></div>
+        <button
+          v-if="users.length > 1"
+          class="btn btn-info btn-lg"
+          @click="start()"
+        >
+          Play
+        </button>
       </div>
+    </div>
+    <hr />
+    <div class="text-right">
+      <button class="btn btn-dark" @click="$router.push({ name: 'Home' })">
+        Return to Home
+      </button>
     </div>
   </div>
 </template>
@@ -38,8 +52,10 @@ export default {
   name: 'Lobby',
   data() {
     return {
+      gameId: '',
       started: false,
       users: [],
+      game: null,
     };
   },
   mounted() {
@@ -49,7 +65,9 @@ export default {
       });
       return;
     }
+    this.gameId = this.$route.params.id;
     Socket.on('game', this.onGame);
+    Socket.on('game_details', this.onGameDetails);
     Socket.on('game_started', this.onGameStarted);
     Socket.on('new_user', this.onNewUser);
     Socket.getGame(this.$route.params.id);
@@ -81,7 +99,11 @@ export default {
         this.gotoGame();
         return;
       }
+      this.game = data.game;
       this.users = data.users;
+    },
+    onGameDetails(data) {
+      this.game = data.game;
     },
     start() {
       Socket.startGame(this.$route.params.id);
@@ -91,6 +113,9 @@ export default {
         name: 'Game',
         params: { id: this.$route.params.id },
       });
+    },
+    shareGame() {
+      location.href = `mailto:?subject=Lets play Rummikub&body=${location.origin}/?share=${this.gameId}`;
     },
   },
 };

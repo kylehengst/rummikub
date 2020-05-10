@@ -67,7 +67,8 @@
         v-for="(user, userIndex) in users"
         :key="userIndex"
       >
-        {{ user.name }}
+        <span v-if="currentUser == user.id">👉</span>
+        <span>{{ user.gamer_tag }}</span>
       </div>
     </div>
     <div id="actions">
@@ -75,8 +76,8 @@
       <div class="button">Play</div>
       <div class="button">Quit</div> -->
       <div class="button" @click="$router.push({ name: 'Home' })">Home</div>
-      <div class="button ml-3" @click="resetBoard()" v-if="yourTurn">Reset</div>
-      <div class="button ml-3" @click="skipTurn()" v-if="yourTurn">Skip</div>
+      <div class="button ml-5" @click="resetBoard()" v-if="yourTurn">Restore</div>
+      <div class="button ml-3" @click="skipTurn()" v-if="yourTurn">Pass</div>
       <div class="button ml-5" @click="makeMove()" v-if="yourTurn">Play</div>
     </div>
   </div>
@@ -154,7 +155,7 @@ export default {
   },
   computed: {
     yourTurn() {
-      if (this.game && this.game.end) return;
+      if (this.game && this.game.complete) return;
       return this.currentUser == this.$store.state.userId;
     },
   },
@@ -177,7 +178,7 @@ export default {
       this.game = JSON.parse(JSON.stringify(data.game));
       this.board = data.game.board;
       this.users = data.users;
-      this.currentUser = data.game.end ? '' : data.game.currentUser;
+      this.currentUser = data.game.complete ? '' : data.game.current_user;
 
       if (!data.update) {
         this.setUserTiles(data.game.users);
@@ -230,13 +231,13 @@ export default {
 
     setUserTiles(users) {
       console.log('setUserTiles');
-      let shelf = createShelf();
-      let userTiles = JSON.parse(
-        JSON.stringify(users[this.$store.state.userId].tiles)
-      );
-      shelf[0].splice(0, userTiles.length);
-      shelf[0] = userTiles.concat(shelf[0]);
-      this.shelf = shelf;
+      // let shelf = createShelf();
+      // let userTiles = JSON.parse(
+      //   JSON.stringify(users[this.$store.state.userId].tiles)
+      // );
+      // shelf[0].splice(0, userTiles.length);
+      // shelf[0] = userTiles.concat(shelf[0]);
+      this.shelf = users[this.$store.state.userUuid].shelf;
     },
     takeSnapshot() {
       this.snapshot = JSON.parse(
@@ -264,9 +265,11 @@ export default {
     },
     skipTurn() {
       this.currentUser = '';
+      Socket.skipTurn({
+        shelf: this.shelf
+      });
       this.resetShelf();
       // this.setUserTiles(this.game.users);
-      Socket.skipTurn();
     },
     makeMove() {
       // get remaing user tiles
@@ -280,6 +283,7 @@ export default {
       Socket.makeMove({
         board: this.board,
         tiles,
+        shelf: this.shelf
       });
     },
 
