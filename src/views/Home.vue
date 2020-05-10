@@ -85,6 +85,7 @@
                 class="form-control input-lg"
                 type="text"
                 v-model="password"
+                autocapitalize="none"
               />
             </div>
             <button class="btn btn-success btn-lg">Submit</button>
@@ -107,6 +108,7 @@
                 class="form-control input-lg"
                 type="text"
                 v-model="newUser.password"
+                autocapitalize="none"
                 required
               />
             </div>
@@ -230,7 +232,7 @@
         </div>
 
         <hr />
-        <div>Version 0.10</div>
+        <div>Version 0.11</div>
       </div>
     </div>
   </div>
