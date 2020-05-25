@@ -110,6 +110,12 @@ class Socket extends Emitter {
       data: data,
     });
   }
+  rematch() {
+    this.message({
+      event: 'rematch',
+      id: this.id,
+    });
+  }
   message(message) {
     this.ws.send(JSON.stringify(message));
   }

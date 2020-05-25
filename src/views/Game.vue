@@ -75,8 +75,11 @@
       <!-- <div class="button">Skip</div>
       <div class="button">Play</div>
       <div class="button">Quit</div> -->
+      <div class="button mr-3" @click="rematch()" >Rematch</div>
       <div class="button" @click="$router.push({ name: 'Home' })">Home</div>
-      <div class="button ml-5" @click="resetBoard()" v-if="yourTurn">Restore</div>
+      <div class="button ml-5" @click="resetBoard()" v-if="yourTurn">
+        Restore
+      </div>
       <div class="button ml-3" @click="skipTurn()" v-if="yourTurn">Pass</div>
       <div class="button ml-5" @click="makeMove()" v-if="yourTurn">Play</div>
     </div>
@@ -119,7 +122,15 @@ export default {
       currentUser: '',
       modal: false,
       modalBody: '',
+      complete: false,
     };
+  },
+  beforeRouteUpdate(to, from, next) {
+    console.log('beforeRouteUpdate');
+    next();
+    this.gameId = this.$route.params.id;
+    Socket.getGame(this.gameId);
+    // this.init();
   },
   beforeMount() {
     if (!this.$store.state.userId) {
@@ -137,6 +148,7 @@ export default {
     Socket.on('new_tile', this.onNewTile);
     Socket.on('invalid_move', this.onInvalidMove);
     Socket.on('winner', this.onWinner);
+    Socket.on('rematch', this.onRematch);
     Socket.getGame(this.gameId);
   },
   mounted() {
@@ -152,6 +164,7 @@ export default {
     Socket.off('new_tile', this.onNewTile);
     Socket.off('invalid_move', this.onInvalidMove);
     Socket.off('winner', this.onWinner);
+    Socket.off('rematch', this.onRematch);
   },
   computed: {
     yourTurn() {
@@ -179,6 +192,7 @@ export default {
       this.board = data.game.board;
       this.users = data.users;
       this.currentUser = data.game.complete ? '' : data.game.current_user;
+      this.complete = data.game.complete;
 
       if (!data.update) {
         this.setUserTiles(data.game.users);
@@ -201,7 +215,7 @@ export default {
       if (data.remove) {
         this.board[data.remove.row].splice(data.remove.col, 1, null);
       }
-       Sounds.playSound('cardPlace');
+      Sounds.playSound('cardPlace');
       // this.board = data.game.board;
     },
     onGameBoardReset() {
@@ -210,10 +224,19 @@ export default {
     },
     onNewTile(data) {
       console.log(data);
-      let index = this.shelf[1].findIndex((t) => {
-        return t === null;
+      let done = false;
+      this.shelf.forEach((row, rowIndex) => {
+        if (done) return;
+        row.forEach((col, colIndex) => {
+          if (done || col) return;
+          this.shelf[rowIndex].splice(colIndex, 1, data.tile);
+          done = true;
+        });
       });
-      this.shelf[1].splice(index, 1, data.tile);
+      // let index = this.shelf[1].findIndex((t) => {
+      //   return t === null;
+      // });
+      // this.shelf[1].splice(index, 1, data.tile);
       this.shelfSnapshot = JSON.parse(JSON.stringify(this.shelf));
       // this.takeSnapshot();
     },
@@ -226,6 +249,17 @@ export default {
     onWinner(data) {
       this.$store.commit('setModal', {
         title: `${data.winner.name} wins!`,
+      });
+    },
+    onRematch(data) {
+      console.log(data);
+      // reset state
+      this.resetData();
+
+      // goto game
+      this.$router.push({
+        name: 'Game',
+        params: { id: data.id },
       });
     },
 
@@ -247,6 +281,25 @@ export default {
         })
       );
     },
+    resetData() {
+      this.board = [];
+      this.shelf = createShelf();
+      this.user = null;
+      this.grid = [];
+      this.dragging = false;
+      this.boardRow = -1;
+      this.boardCol = -1;
+      this.shelfRow = -1;
+      this.shelfCol = -1;
+      // this.boardHeight = 0;
+      this.tileSlot = [];
+      this.users = [];
+      this.gameId = '';
+      this.currentUser = '';
+      this.modal = false;
+      this.modalBody = '';
+      this.complete = false;
+    },
     resetShelf() {
       // TODO get tiles from board instead
       this.board.forEach((row) => {
@@ -266,7 +319,7 @@ export default {
     skipTurn() {
       this.currentUser = '';
       Socket.skipTurn({
-        shelf: this.shelf
+        shelf: this.shelf,
       });
       this.resetShelf();
       // this.setUserTiles(this.game.users);
@@ -283,8 +336,11 @@ export default {
       Socket.makeMove({
         board: this.board,
         tiles,
-        shelf: this.shelf
+        shelf: this.shelf,
       });
+    },
+    rematch() {
+      Socket.rematch();
     },
 
     // tile moves

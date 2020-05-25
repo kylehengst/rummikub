@@ -60,7 +60,7 @@
     </div>
 
     <div class="row justify-content-md-center">
-      <div class="col-sm-6">
+      <div class="col-md-6">
         <div class="mb-5" v-if="prompt">
           <button class="btn btn-lg btn-block btn-info" @click="upgrade">
             Click here to update
@@ -232,7 +232,7 @@
         </div>
 
         <hr />
-        <div>Version 0.11</div>
+        <div>Version 0.13</div>
       </div>
     </div>
   </div>
