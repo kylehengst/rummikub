@@ -1,13 +1,8 @@
 <template>
   <div id="app" :class="{ desktop: !touch }">
+
     <router-view v-if="connected" />
-    <div v-else class="connecting py-5">
-      <div class="card">
-        <div class="card-body">
-          Connecting...
-        </div>
-      </div>
-    </div>
+
     <div id="modals">
       <!-- Modal -->
       <div
@@ -64,7 +59,11 @@
 </template>
 <script>
 import Socket from './services/socket';
+// import Tile from '@/components/Tile.vue';
 export default {
+  components: {
+    // Tile
+  },
   data() {
     return {
       connected: false,

@@ -1,7 +1,22 @@
 <template>
   <div id="home" class="container py-5">
     <div class="mb-5 d-flex justify-content-md-center">
-      <div class="d-flex">
+      <div class="d-flex" v-if="$store.state.userId">
+        <Tile
+          v-for="(l, i) in $store.state.userName" :key="i"
+          :disabled="true"
+          :config="{ color: 'red', score: l }"
+          :row="0"
+          :col="0"
+        ></Tile>
+        <Tile
+          :disabled="true"
+          :config="{ color: 'black', score: 'i', isJoker: true }"
+          :row="0"
+          :col="0"
+        ></Tile>        
+      </div>
+      <div class="d-flex" v-else>
         <Tile
           :disabled="true"
           :config="{ color: 'red', score: 'R' }"
@@ -229,10 +244,19 @@
               </a>
             </div>
           </div>
+          <hr />
+          <div>
+            <button
+              class="btn btn-lg btn-block btn-success"
+              @click="$router.push('/logout')"
+            >
+              Logout
+            </button>            
+          </div>
         </div>
 
         <hr />
-        <div>Version 0.13</div>
+        <div>Version 0.14</div>
       </div>
     </div>
   </div>
