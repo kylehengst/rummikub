@@ -256,7 +256,7 @@
         </div>
 
         <hr />
-        <div>Version 0.14</div>
+        <div>Version 0.15</div>
       </div>
     </div>
   </div>

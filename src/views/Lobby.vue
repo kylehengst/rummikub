@@ -18,7 +18,7 @@
       <div class="pb-3"></div>
       <div class="d-flex">
         <button
-          class="btn  btn-lg"
+          class="btn btn-lg"
           :class="{
             'btn-info': users.length < 2,
             'btn-dark': users.length > 1,
@@ -26,6 +26,9 @@
           @click="shareGame()"
         >
           Share game
+        </button>
+        <button class="btn btn-lg btn-dark ml-3" @click="remove()">
+          Remove game
         </button>
         <div class="flex-fill"></div>
         <button
@@ -47,12 +50,12 @@
 </template>
 
 <script>
-import Socket from '../services/socket';
+import Socket from "../services/socket";
 export default {
-  name: 'Lobby',
+  name: "Lobby",
   data() {
     return {
-      gameId: '',
+      gameId: "",
       started: false,
       users: [],
       game: null,
@@ -61,24 +64,26 @@ export default {
   mounted() {
     if (!this.$store.state.userId) {
       this.$router.push({
-        name: 'Home',
+        name: "Home",
       });
       return;
     }
     this.gameId = this.$route.params.id;
-    Socket.on('game', this.onGame);
-    Socket.on('game_details', this.onGameDetails);
-    Socket.on('game_started', this.onGameStarted);
-    Socket.on('new_user', this.onNewUser);
+    Socket.on("game", this.onGame);
+    Socket.on("game_details", this.onGameDetails);
+    Socket.on("game_started", this.onGameStarted);
+    Socket.on("new_user", this.onNewUser);
+    Socket.on("removed", this.onRemoved);
     Socket.getGame(this.$route.params.id);
     // Socket.on('user', this.onUser);
     // const userId = localStorage.getItem('user_id');
     // Socket.initUser(userId);
   },
   destroyed() {
-    Socket.off('game', this.onGame);
-    Socket.off('game_started', this.onGameStarted);
-    Socket.off('new_user', this.onNewUser);
+    Socket.off("game", this.onGame);
+    Socket.off("game_started", this.onGameStarted);
+    Socket.off("new_user", this.onNewUser);
+    Socket.off("removed", this.onRemoved);
   },
   methods: {
     onGameStarted() {
@@ -88,10 +93,10 @@ export default {
       this.users = data.users;
     },
     onGame(data) {
-      console.log('onGameUsers', data);
+      console.log("onGameUsers", data);
       if (!data.game || !data.users.length) {
         this.$router.push({
-          name: 'Home',
+          name: "Home",
         });
         return;
       }
@@ -105,12 +110,22 @@ export default {
     onGameDetails(data) {
       this.game = data.game;
     },
+    onRemoved() {
+      this.$router.push({
+        name: "Home",
+      });
+    },
+    remove() {
+      let confirm = window.confirm("Are you sure?");
+      if (!confirm) return;
+      Socket.remove();
+    },
     start() {
       Socket.startGame(this.$route.params.id);
     },
     gotoGame() {
       this.$router.push({
-        name: 'Game',
+        name: "Game",
         params: { id: this.$route.params.id },
       });
     },

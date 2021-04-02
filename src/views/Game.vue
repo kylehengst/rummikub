@@ -72,35 +72,42 @@
       </div>
     </div>
     <div id="actions">
-      <!-- <div class="button">Skip</div>
-      <div class="button">Play</div>
-      <div class="button">Quit</div> -->
-      <div class="button mr-3" @click="rematch()" >Rematch</div>
-      <div class="button" @click="$router.push({ name: 'Home' })">Home</div>
-      <div class="button ml-5" @click="resetBoard()" v-if="yourTurn">
-        Restore
-      </div>
-      <div class="button ml-3" @click="skipTurn()" v-if="yourTurn">Pass</div>
-      <div class="button ml-5" @click="makeMove()" v-if="yourTurn">Play</div>
+      <div class="button" @click="makeMove()" v-if="yourTurn">Play</div>
+      <div class="button ml-3" @click="toggleMenu()">Menu</div>
     </div>
+    <div id="menu" :class="{ active: menu }">
+      <div class="button mb-3" @click="$router.push({ name: 'Home' })">
+        Home
+      </div>
+      <div class="flex"></div>
+      <div class="button mb-3" @click="makeMove()" v-if="yourTurn">Play</div>
+      <div class="button mb-3" @click="skipTurn()" v-if="yourTurn">Pass</div>
+      <div class="button" @click="resetBoard()" v-if="yourTurn">Restore</div>
+      <div class="button" @click="rematch()" v-if="complete">Rematch</div>
+      <div class="flex"></div>
+      <div class="button" @click="toggleMenu()">Close Menu</div>
+      <div class="flex-2"></div>
+      <div class="button button-danger" @click="remove()">Delete</div>
+    </div>
+    <div id="overlay" :class="{ active: menu }" @click="menu = false"></div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Socket from '../services/socket';
-import Sounds from '../services/sounds';
+import Socket from "../services/socket";
+import Sounds from "../services/sounds";
 // import rummikub from '../assets/js/rummikub';
-import shelf from '../assets/shelf.json';
+import shelf from "../assets/shelf.json";
 // import board from '../assets/board.json';
-import Tile from '@/components/Tile.vue';
+import Tile from "@/components/Tile.vue";
 
 function createShelf() {
   return shelf;
 }
 
 export default {
-  name: 'Game',
+  name: "Game",
   components: {
     Tile,
   },
@@ -118,15 +125,16 @@ export default {
       boardHeight: 0,
       tileSlot: [],
       users: [],
-      gameId: '',
-      currentUser: '',
+      gameId: "",
+      currentUser: "",
       modal: false,
-      modalBody: '',
+      modalBody: "",
       complete: false,
+      menu: false,
     };
   },
   beforeRouteUpdate(to, from, next) {
-    console.log('beforeRouteUpdate');
+    console.log("beforeRouteUpdate");
     next();
     this.gameId = this.$route.params.id;
     Socket.getGame(this.gameId);
@@ -135,36 +143,38 @@ export default {
   beforeMount() {
     if (!this.$store.state.userId) {
       this.$router.push({
-        name: 'Home',
+        name: "Home",
       });
       return;
     }
-    console.log('beforeMount');
+    console.log("beforeMount");
     this.gameId = this.$route.params.id;
-    Socket.on('game', this.onGame);
-    Socket.on('reset', this.onReset);
-    Socket.on('game_board_updated', this.onGameBoard);
-    Socket.on('reset_game_board', this.onGameBoardReset);
-    Socket.on('new_tile', this.onNewTile);
-    Socket.on('invalid_move', this.onInvalidMove);
-    Socket.on('winner', this.onWinner);
-    Socket.on('rematch', this.onRematch);
+    Socket.on("game", this.onGame);
+    Socket.on("reset", this.onReset);
+    Socket.on("game_board_updated", this.onGameBoard);
+    Socket.on("reset_game_board", this.onGameBoardReset);
+    Socket.on("new_tile", this.onNewTile);
+    Socket.on("invalid_move", this.onInvalidMove);
+    Socket.on("winner", this.onWinner);
+    Socket.on("rematch", this.onRematch);
+    Socket.on("removed", this.onRemoved);
     Socket.getGame(this.gameId);
   },
   mounted() {
-    window.addEventListener('resize', this.onResize);
+    window.addEventListener("resize", this.onResize);
     this.onResize();
   },
   destroyed() {
-    window.removeEventListener('resize', this.onResize);
-    Socket.off('game', this.onGame);
-    Socket.off('reset', this.onReset);
-    Socket.off('game_board_updated', this.onGameBoard);
-    Socket.off('reset_game_board', this.onGameBoardReset);
-    Socket.off('new_tile', this.onNewTile);
-    Socket.off('invalid_move', this.onInvalidMove);
-    Socket.off('winner', this.onWinner);
-    Socket.off('rematch', this.onRematch);
+    window.removeEventListener("resize", this.onResize);
+    Socket.off("game", this.onGame);
+    Socket.off("reset", this.onReset);
+    Socket.off("game_board_updated", this.onGameBoard);
+    Socket.off("reset_game_board", this.onGameBoardReset);
+    Socket.off("new_tile", this.onNewTile);
+    Socket.off("invalid_move", this.onInvalidMove);
+    Socket.off("winner", this.onWinner);
+    Socket.off("rematch", this.onRematch);
+    Socket.off("removed", this.onRemoved);
   },
   computed: {
     yourTurn() {
@@ -175,7 +185,7 @@ export default {
   methods: {
     onReset() {
       this.$router.push({
-        name: 'Home',
+        name: "Home",
       });
     },
     onResize() {
@@ -184,27 +194,27 @@ export default {
     onGame(data) {
       console.log(data);
       if (!data.game || data.users.length < 2) {
-        this.$router.push({ name: 'Lobby', params: { id: this.gameId } });
+        this.$router.push({ name: "Lobby", params: { id: this.gameId } });
         return;
       }
 
       this.game = JSON.parse(JSON.stringify(data.game));
       this.board = data.game.board;
       this.users = data.users;
-      this.currentUser = data.game.complete ? '' : data.game.current_user;
+      this.currentUser = data.game.complete ? "" : data.game.current_user;
       this.complete = data.game.complete;
 
       if (!data.update) {
         this.setUserTiles(data.game.users);
         this.shelfSnapshot = JSON.parse(JSON.stringify(this.shelf));
       } else if (this.currentUser == this.$store.state.userId) {
-        Sounds.playSound('bell');
+        Sounds.playSound("bell");
       }
 
       // this.takeSnapshot();
     },
     onGameBoard(data) {
-      console.log('onGameBoard', data);
+      console.log("onGameBoard", data);
 
       if (data.update)
         this.board[data.update.row].splice(
@@ -215,11 +225,11 @@ export default {
       if (data.remove) {
         this.board[data.remove.row].splice(data.remove.col, 1, null);
       }
-      Sounds.playSound('cardPlace');
+      Sounds.playSound("cardPlace");
       // this.board = data.game.board;
     },
     onGameBoardReset() {
-      console.log('onGameBoardReset');
+      console.log("onGameBoardReset");
       this.resetBoard(true);
     },
     onNewTile(data) {
@@ -241,13 +251,13 @@ export default {
       // this.takeSnapshot();
     },
     onInvalidMove() {
-      this.$store.commit('setModal', {
+      this.$store.commit("setModal", {
         title: `Invalid move`,
       });
-      Sounds.playSound('alert');
+      Sounds.playSound("alert");
     },
     onWinner(data) {
-      this.$store.commit('setModal', {
+      this.$store.commit("setModal", {
         title: `${data.winner.name} wins!`,
       });
     },
@@ -258,13 +268,18 @@ export default {
 
       // goto game
       this.$router.push({
-        name: 'Game',
+        name: "Game",
         params: { id: data.id },
+      });
+    },
+    onRemoved() {
+      this.$router.push({
+        name: "Home",
       });
     },
 
     setUserTiles(users) {
-      console.log('setUserTiles');
+      console.log("setUserTiles");
       // let shelf = createShelf();
       // let userTiles = JSON.parse(
       //   JSON.stringify(users[this.$store.state.userId].tiles)
@@ -294,10 +309,10 @@ export default {
       // this.boardHeight = 0;
       this.tileSlot = [];
       this.users = [];
-      this.gameId = '';
-      this.currentUser = '';
+      this.gameId = "";
+      this.currentUser = "";
       this.modal = false;
-      this.modalBody = '';
+      this.modalBody = "";
       this.complete = false;
     },
     resetShelf() {
@@ -315,13 +330,15 @@ export default {
       // this.setUserTiles(this.game.users);
       this.resetShelf();
       Socket.resetGameBoard();
+      this.menu = false;
     },
     skipTurn() {
-      this.currentUser = '';
+      this.currentUser = "";
       Socket.skipTurn({
         shelf: this.shelf,
       });
       this.resetShelf();
+      this.menu = false;
       // this.setUserTiles(this.game.users);
     },
     makeMove() {
@@ -338,9 +355,18 @@ export default {
         tiles,
         shelf: this.shelf,
       });
+      this.menu = false;
     },
     rematch() {
       Socket.rematch();
+    },
+    remove() {
+      let confirm = window.confirm("Are you sure?");
+      if (!confirm) return;
+      Socket.remove();
+    },
+    toggleMenu() {
+      this.menu = !this.menu;
     },
 
     // tile moves
@@ -397,7 +423,7 @@ export default {
       else this.updateBoard(config, index, tileSlot);
       this.$set(this.tileSlot, index.id, null);
       // this.dragging = false;
-      Sounds.playSound('cardPlace');
+      Sounds.playSound("cardPlace");
     },
     updateBoard(config, index, tileSlot) {
       // if (this.boardRow < 0 || this.boardCol < 0) return;
@@ -444,7 +470,7 @@ export default {
       if (config.board && !config.isOwn) return;
       if (this.shelf[tileSlot.row][tileSlot.col]) return;
 
-      console.log('updateShelf', config, tileSlot);
+      console.log("updateShelf", config, tileSlot);
 
       // this.shelf[tileSlot.row][tileSlot.col] = config;
       this.shelf[tileSlot.row].splice(tileSlot.col, 1, config);
@@ -589,5 +615,53 @@ export default {
 .button:hover {
   background: rgb(131, 35, 35);
   color: white;
+}
+.button-danger {
+  background-color: red;
+  color: white;
+}
+#overlay {
+  pointer-events: none;
+  transition: 200ms all;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+#overlay.active {
+  pointer-events: all;
+  z-index: 90;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  position: absolute;
+}
+#menu {
+  /* display: none; */
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80%;
+  margin-right: -80%;
+  transition: 200ms all;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  z-index: 100;
+  padding: 2rem;
+}
+#menu.active {
+  margin-right: 0%;
+}
+@media (min-width: 768px) {
+  #menu {
+    width: 30%;
+  }
+}
+.flex {
+  flex: 1;
+}
+.flex-2 {
+  flex: 2;
 }
 </style>

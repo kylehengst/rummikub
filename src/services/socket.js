@@ -116,6 +116,12 @@ class Socket extends Emitter {
       id: this.id,
     });
   }
+  remove() {
+    this.message({
+      event: 'remove',
+      id: this.id,
+    });
+  }
   message(message) {
     this.ws.send(JSON.stringify(message));
   }
